@@ -14,6 +14,7 @@ A fast, in-browser PDF viewer and editor built with React, TypeScript, Vite, and
 | Shortcut | Action |
 |---|---|
 | `Ctrl+O` | Open file picker (PDF only) |
+| `Ctrl+Scroll` | Zoom in / out (also works with trackpad pinch) |
 | `+` / `-` | Zoom in / out |
 | `Ctrl+0` | Reset zoom to 100% |
 | `← →` / `↑ ↓` | Previous / next page |

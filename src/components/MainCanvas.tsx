@@ -40,12 +40,27 @@ export default function MainCanvas() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [handleKeyDown])
 
+  // Ctrl+scroll: zoom in/out, override browser page-zoom
+  useEffect(() => {
+    function handleCtrlWheel(e: WheelEvent) {
+      if (!e.ctrlKey && !e.metaKey) return
+      e.preventDefault()
+      if (!doc) return
+      // deltaY is ~100 per notch on a mouse wheel; trackpad sends smaller values
+      const delta = e.deltaY * -0.001
+      setZoom(doc.id, doc.zoom + delta)
+    }
+    window.addEventListener('wheel', handleCtrlWheel, { passive: false })
+    return () => window.removeEventListener('wheel', handleCtrlWheel)
+  }, [doc, setZoom])
+
   // Continuous scroll: advance/retreat page when reaching scroll boundary
   useEffect(() => {
     const el = containerRef.current
     if (!el || !doc) return
 
     function handleWheel(e: WheelEvent) {
+      if (e.ctrlKey || e.metaKey) return // handled by zoom handler above
       if (settings.scrollMode !== 'continuous') return
       if (pageCooldown.current) return
 
