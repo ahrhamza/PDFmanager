@@ -55,6 +55,30 @@ body { transition: background-color 0.15s ease, color 0.15s ease; }
 ::-webkit-scrollbar-thumb { background: var(--app-border); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--app-text-muted); }
 
+/* ── PDF.js text layer ────────────────────────────────────── */
+/* Transparent span overlay over the canvas — enables text selection and Ctrl+C */
+.textLayer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  line-height: 1;
+  text-align: initial;
+}
+
+.textLayer span,
+.textLayer br {
+  color: transparent;
+  position: absolute;
+  white-space: pre;
+  cursor: text;
+  transform-origin: 0% 0%;
+}
+
+.textLayer ::selection {
+  background: rgba(0, 100, 255, 0.25);
+  color: transparent;
+}
+
 /* ── Utility shorthands ───────────────────────────────────── */
 .app-bg       { background-color: var(--app-bg); }
 .app-surface  { background-color: var(--app-surface); }

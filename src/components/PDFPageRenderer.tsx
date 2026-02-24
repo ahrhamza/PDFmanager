@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
-import { renderPageToCanvas } from '../lib/pdfjs'
+import { loadPdfPage, pdfjsLib } from '../lib/pdfjs'
 
 interface Props {
   pdfBytes: Uint8Array
@@ -8,7 +8,8 @@ interface Props {
 }
 
 export default function PDFPageRenderer({ pdfBytes, pageIndex, zoom }: Props) {
-  const containerRef = useRef<HTMLDivElement>(null)
+  const wrapperRef = useRef<HTMLDivElement>(null)
+  const textLayerRef = useRef<HTMLDivElement>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const renderKey = useRef(0)
@@ -17,21 +18,51 @@ export default function PDFPageRenderer({ pdfBytes, pageIndex, zoom }: Props) {
     const key = ++renderKey.current
     setLoading(true)
     setError(null)
+
+    let pdf: Awaited<ReturnType<typeof loadPdfPage>>['pdf'] | null = null
     try {
-      const canvas = await renderPageToCanvas(pdfBytes, pageIndex, zoom)
-      if (key !== renderKey.current) return // stale render
-      const container = containerRef.current
-      if (!container) return
-      // Replace existing canvas
-      const existing = container.querySelector('canvas')
-      if (existing) container.removeChild(existing)
+      const loaded = await loadPdfPage(pdfBytes, pageIndex, zoom)
+      pdf = loaded.pdf
+      const { page, viewport } = loaded
+
+      if (key !== renderKey.current) return
+
+      // --- Canvas ---
+      const canvas = document.createElement('canvas')
+      canvas.width = Math.floor(viewport.width)
+      canvas.height = Math.floor(viewport.height)
       canvas.style.display = 'block'
-      canvas.style.maxWidth = '100%'
-      container.appendChild(canvas)
+
+      const ctx = canvas.getContext('2d')!
+      await page.render({ canvasContext: ctx, canvas, viewport }).promise
+
+      if (key !== renderKey.current) return
+
+      const wrapper = wrapperRef.current
+      if (!wrapper) return
+
+      // Swap in new canvas
+      const oldCanvas = wrapper.querySelector('canvas')
+      if (oldCanvas) wrapper.removeChild(oldCanvas)
+      wrapper.insertBefore(canvas, wrapper.firstChild)
+
+      // --- Text layer ---
+      const textLayerEl = textLayerRef.current
+      if (textLayerEl) {
+        textLayerEl.replaceChildren()
+        pdfjsLib.setLayerDimensions(textLayerEl, viewport)
+        const textLayer = new pdfjsLib.TextLayer({
+          textContentSource: page.streamTextContent(),
+          container: textLayerEl,
+          viewport,
+        })
+        await textLayer.render()
+      }
     } catch (err) {
       if (key !== renderKey.current) return
       setError(err instanceof Error ? err.message : 'Render failed')
     } finally {
+      pdf?.destroy()
       if (key === renderKey.current) setLoading(false)
     }
   }, [pdfBytes, pageIndex, zoom])
@@ -42,8 +73,15 @@ export default function PDFPageRenderer({ pdfBytes, pageIndex, zoom }: Props) {
 
   return (
     <div className="relative flex justify-center">
-      {/* Canvas mount point */}
-      <div ref={containerRef} className="shadow-lg rounded" />
+      {/* Canvas + text layer wrapper */}
+      <div
+        ref={wrapperRef}
+        className="shadow-lg rounded"
+        style={{ position: 'relative', display: 'inline-block' }}
+      >
+        {/* Canvas is imperatively appended here */}
+        <div ref={textLayerRef} className="textLayer" />
+      </div>
 
       {/* Loading overlay */}
       {loading && (

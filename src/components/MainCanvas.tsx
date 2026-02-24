@@ -1,6 +1,7 @@
 import { useEffect, useRef, useCallback } from 'react'
 import { useAppStore } from '../store/useAppStore'
 import PDFPageRenderer from './PDFPageRenderer'
+import { nearestStep } from '../lib/zoom'
 
 export default function MainCanvas() {
   const { documents, activeDocIndex, settings, setZoom, setCurrentPage } = useAppStore()
@@ -18,10 +19,10 @@ export default function MainCanvas() {
 
       if (e.key === '+' || e.key === '=') {
         e.preventDefault()
-        setZoom(doc.id, doc.zoom + 0.1)
+        setZoom(doc.id, nearestStep(doc.zoom, 1))
       } else if (e.key === '-') {
         e.preventDefault()
-        setZoom(doc.id, doc.zoom - 0.1)
+        setZoom(doc.id, nearestStep(doc.zoom, -1))
       } else if ((e.ctrlKey || e.metaKey) && e.key === '0') {
         e.preventDefault()
         setZoom(doc.id, 1)
@@ -40,12 +41,27 @@ export default function MainCanvas() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [handleKeyDown])
 
+  // Ctrl+scroll: zoom in/out, override browser page-zoom
+  useEffect(() => {
+    function handleCtrlWheel(e: WheelEvent) {
+      if (!e.ctrlKey && !e.metaKey) return
+      e.preventDefault()
+      if (!doc) return
+      // deltaY is ~100 per notch on a mouse wheel; trackpad sends smaller values
+      const delta = e.deltaY * -0.001
+      setZoom(doc.id, doc.zoom + delta)
+    }
+    window.addEventListener('wheel', handleCtrlWheel, { passive: false })
+    return () => window.removeEventListener('wheel', handleCtrlWheel)
+  }, [doc, setZoom])
+
   // Continuous scroll: advance/retreat page when reaching scroll boundary
   useEffect(() => {
     const el = containerRef.current
     if (!el || !doc) return
 
     function handleWheel(e: WheelEvent) {
+      if (e.ctrlKey || e.metaKey) return // handled by zoom handler above
       if (settings.scrollMode !== 'continuous') return
       if (pageCooldown.current) return
 
