@@ -3,9 +3,11 @@ import { useAppStore } from '../store/useAppStore'
 import PDFPageRenderer from './PDFPageRenderer'
 
 export default function MainCanvas() {
-  const { documents, activeDocIndex, setZoom, setCurrentPage } = useAppStore()
+  const { documents, activeDocIndex, settings, setZoom, setCurrentPage } = useAppStore()
   const doc = documents[activeDocIndex]
   const containerRef = useRef<HTMLDivElement>(null)
+  // Prevents rapid page flipping after a page change
+  const pageCooldown = useRef(false)
 
   // Keyboard shortcuts for zoom and page navigation
   const handleKeyDown = useCallback(
@@ -37,6 +39,37 @@ export default function MainCanvas() {
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [handleKeyDown])
+
+  // Continuous scroll: advance/retreat page when reaching scroll boundary
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el || !doc) return
+
+    function handleWheel(e: WheelEvent) {
+      if (settings.scrollMode !== 'continuous') return
+      if (pageCooldown.current) return
+
+      const atBottom = el!.scrollTop + el!.clientHeight >= el!.scrollHeight - 2
+      const atTop = el!.scrollTop <= 2
+
+      if (e.deltaY > 0 && atBottom && doc!.currentPage < doc!.pageCount - 1) {
+        e.preventDefault()
+        pageCooldown.current = true
+        setCurrentPage(doc!.id, doc!.currentPage + 1)
+        requestAnimationFrame(() => { el!.scrollTop = 0 })
+        setTimeout(() => { pageCooldown.current = false }, 400)
+      } else if (e.deltaY < 0 && atTop && doc!.currentPage > 0) {
+        e.preventDefault()
+        pageCooldown.current = true
+        setCurrentPage(doc!.id, doc!.currentPage - 1)
+        requestAnimationFrame(() => { el!.scrollTop = el!.scrollHeight })
+        setTimeout(() => { pageCooldown.current = false }, 400)
+      }
+    }
+
+    el.addEventListener('wheel', handleWheel, { passive: false })
+    return () => el.removeEventListener('wheel', handleWheel)
+  }, [doc, settings.scrollMode, setCurrentPage])
 
   if (!doc) {
     return <EmptyState />

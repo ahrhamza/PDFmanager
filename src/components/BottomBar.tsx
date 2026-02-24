@@ -11,7 +11,7 @@ function nearestStep(zoom: number, direction: 1 | -1): number {
 }
 
 export default function BottomBar() {
-  const { documents, activeDocIndex, setZoom, setCurrentPage } = useAppStore()
+  const { documents, activeDocIndex, settings, setScrollMode, setZoom, setCurrentPage } = useAppStore()
   const doc = documents[activeDocIndex]
 
   if (!doc) {
@@ -59,6 +59,23 @@ export default function BottomBar() {
           <ChevronRightIcon />
         </BarButton>
       </div>
+
+      <Divider />
+
+      {/* Scroll mode toggle */}
+      <button
+        onClick={() => setScrollMode(settings.scrollMode === 'continuous' ? 'page' : 'continuous')}
+        title={settings.scrollMode === 'continuous' ? 'Scroll advances pages (click to lock)' : 'Scroll locked to page (click to enable continuous)'}
+        className="flex items-center gap-1 px-2 h-6 rounded text-xs transition-colors border"
+        style={{
+          backgroundColor: settings.scrollMode === 'continuous' ? 'var(--app-primary)' : 'var(--app-surface-2, #f1f3f5)',
+          borderColor: settings.scrollMode === 'continuous' ? 'var(--app-primary)' : 'var(--app-border)',
+          color: settings.scrollMode === 'continuous' ? '#fff' : 'var(--app-text-muted, #64748b)',
+        }}
+      >
+        <ScrollIcon />
+        <span>{settings.scrollMode === 'continuous' ? 'Continuous' : 'Page'}</span>
+      </button>
 
       <Divider />
 
@@ -148,4 +165,7 @@ function PlusIcon() {
 }
 function FitIcon() {
   return <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" /></svg>
+}
+function ScrollIcon() {
+  return <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="10" x2="12" y2="14"/><polyline points="9 13 12 16 15 13"/></svg>
 }
