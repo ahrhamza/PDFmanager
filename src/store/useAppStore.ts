@@ -19,6 +19,11 @@ interface AppState {
   // ── Recently closed (last 5) ───────────────────────────────
   recentlyClosed: { filename: string; pdfBytes: Uint8Array }[]
 
+  // ── Canvas viewport ────────────────────────────────────────
+  /** Inner width of the main canvas area (px), kept in sync by MainCanvas */
+  canvasWidth: number
+  setCanvasWidth: (w: number) => void
+
   // ── Actions ────────────────────────────────────────────────
   addDocument: (doc: OpenDocument) => void
   removeDocument: (id: string) => void
@@ -57,6 +62,7 @@ export const useAppStore = create<AppState>()(
     clipboard: null,
     activeTool: 'select',
     recentlyClosed: [],
+    canvasWidth: 800,
     settings: {
       theme: getInitialTheme(),
       defaultZoom: 1,
@@ -89,6 +95,8 @@ export const useAppStore = create<AppState>()(
       set((s) => ({
         documents: s.documents.map((d) => (d.id === id ? { ...d, ...patch } : d)),
       })),
+
+    setCanvasWidth: (w) => set({ canvasWidth: w }),
 
     setClipboard: (pages) => set({ clipboard: pages }),
 
