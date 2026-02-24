@@ -4,7 +4,7 @@ import PDFPageRenderer from './PDFPageRenderer'
 import { nearestStep, snapToNearest } from '../lib/zoom'
 
 export default function MainCanvas() {
-  const { documents, activeDocIndex, settings, setZoom, setCurrentPage, setCanvasWidth } = useAppStore()
+  const { documents, activeDocIndex, settings, setZoom, setCurrentPage, setCanvasWidth, setCanvasHeight } = useAppStore()
   const doc = documents[activeDocIndex]
   const containerRef = useRef<HTMLDivElement>(null)
   // Prevents rapid page flipping after a page change
@@ -13,15 +13,20 @@ export default function MainCanvas() {
   const pendingZoom = useRef<number | null>(null)
   const zoomTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // Track inner canvas width for fit-to-width (subtract px-4 padding = 2×16px)
+  // Track inner canvas dimensions for fit-to-width/height
+  // px-4 = 2×16px horizontal padding; py-6 = 2×24px vertical padding
   useEffect(() => {
     const el = containerRef.current
     if (!el) return
-    const obs = new ResizeObserver(() => setCanvasWidth(el.clientWidth - 32))
+    const update = () => {
+      setCanvasWidth(el.clientWidth - 32)
+      setCanvasHeight(el.clientHeight - 48)
+    }
+    const obs = new ResizeObserver(update)
     obs.observe(el)
-    setCanvasWidth(el.clientWidth - 32) // initial measurement
+    update() // initial measurement
     return () => obs.disconnect()
-  }, [setCanvasWidth])
+  }, [setCanvasWidth, setCanvasHeight])
 
   // Keyboard shortcuts for zoom and page navigation
   const handleKeyDown = useCallback(

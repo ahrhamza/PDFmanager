@@ -35,6 +35,8 @@ export interface OpenDocument {
   zoom: number
   /** natural page width in PDF units (points) at zoom=1, used for fit-to-width */
   naturalWidth: number
+  /** natural page height in PDF units (points) at zoom=1, used for fit-to-height */
+  naturalHeight: number
   scrollTop: number
   undoStack: UndoEntry[]
   redoStack: UndoEntry[]

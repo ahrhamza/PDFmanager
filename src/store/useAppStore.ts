@@ -23,6 +23,9 @@ interface AppState {
   /** Inner width of the main canvas area (px), kept in sync by MainCanvas */
   canvasWidth: number
   setCanvasWidth: (w: number) => void
+  /** Inner height of the main canvas area (px), kept in sync by MainCanvas */
+  canvasHeight: number
+  setCanvasHeight: (h: number) => void
 
   // ── Actions ────────────────────────────────────────────────
   addDocument: (doc: OpenDocument) => void
@@ -63,6 +66,7 @@ export const useAppStore = create<AppState>()(
     activeTool: 'select',
     recentlyClosed: [],
     canvasWidth: 800,
+    canvasHeight: 600,
     settings: {
       theme: getInitialTheme(),
       defaultZoom: 1,
@@ -97,6 +101,7 @@ export const useAppStore = create<AppState>()(
       })),
 
     setCanvasWidth: (w) => set({ canvasWidth: w }),
+    setCanvasHeight: (h) => set({ canvasHeight: h }),
 
     setClipboard: (pages) => set({ clipboard: pages }),
 
