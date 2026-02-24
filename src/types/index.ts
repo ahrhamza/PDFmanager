@@ -50,6 +50,7 @@ export interface ClipboardPage {
 export interface AppSettings {
   theme: 'light' | 'dark' | 'system'
   defaultZoom: number
+  scrollMode: 'page' | 'continuous'
 }
 
 export type Tool =

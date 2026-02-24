@@ -27,6 +27,7 @@ interface AppState {
   setClipboard: (pages: ClipboardPage[] | null) => void
   setActiveTool: (tool: Tool) => void
   setTheme: (theme: AppSettings['theme']) => void
+  setScrollMode: (mode: AppSettings['scrollMode']) => void
   setZoom: (docId: string, zoom: number) => void
   setCurrentPage: (docId: string, page: number) => void
 }
@@ -59,6 +60,7 @@ export const useAppStore = create<AppState>()(
     settings: {
       theme: getInitialTheme(),
       defaultZoom: 1,
+      scrollMode: 'continuous',
     },
 
     addDocument: (doc) =>
@@ -97,6 +99,9 @@ export const useAppStore = create<AppState>()(
       applyTheme(theme)
       set((s) => ({ settings: { ...s.settings, theme } }))
     },
+
+    setScrollMode: (scrollMode) =>
+      set((s) => ({ settings: { ...s.settings, scrollMode } })),
 
     setZoom: (docId, zoom) =>
       set((s) => ({
