@@ -1,6 +1,7 @@
 import { useEffect, useRef, useCallback } from 'react'
 import { useAppStore } from '../store/useAppStore'
 import PDFPageRenderer from './PDFPageRenderer'
+import { nearestStep } from '../lib/zoom'
 
 export default function MainCanvas() {
   const { documents, activeDocIndex, settings, setZoom, setCurrentPage } = useAppStore()
@@ -18,10 +19,10 @@ export default function MainCanvas() {
 
       if (e.key === '+' || e.key === '=') {
         e.preventDefault()
-        setZoom(doc.id, doc.zoom + 0.1)
+        setZoom(doc.id, nearestStep(doc.zoom, 1))
       } else if (e.key === '-') {
         e.preventDefault()
-        setZoom(doc.id, doc.zoom - 0.1)
+        setZoom(doc.id, nearestStep(doc.zoom, -1))
       } else if ((e.ctrlKey || e.metaKey) && e.key === '0') {
         e.preventDefault()
         setZoom(doc.id, 1)
