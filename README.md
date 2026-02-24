@@ -1,73 +1,55 @@
-# React + TypeScript + Vite
+# PDFLab
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A fast, in-browser PDF viewer and editor built with React, TypeScript, Vite, and PDF.js.
 
-Currently, two official plugins are available:
+## Implemented Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### PDF Viewing
+- Open PDF files via the **Open** button or drag-and-drop onto the viewer
+- Multi-tab support — open multiple PDFs simultaneously with tab switching
+- Page-by-page rendering using PDF.js with zoom controls (25% – 500%)
 
-## React Compiler
+### Keyboard Shortcuts
+| Shortcut | Action |
+|---|---|
+| `Ctrl+O` | Open file picker (PDF only) |
+| `+` / `-` | Zoom in / out |
+| `Ctrl+0` | Reset zoom to 100% |
+| `← →` / `↑ ↓` | Previous / next page |
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Scroll Modes
+Toggle between two scroll behaviours from the bottom bar:
+- **Continuous** — scrolling past the bottom of a page automatically advances to the next page; scrolling past the top retreats to the previous page
+- **Page** — scroll is locked within the current page; page changes only via buttons or keyboard
 
-## Expanding the ESLint configuration
+### UI
+- Light / dark / system theme toggle
+- Thumbnail sidebar for quick page navigation
+- Bottom status bar showing current page, total pages, and zoom level
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Deployment
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+The app deploys automatically to **GitHub Pages** on every push to `main` via GitHub Actions.
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+**One-time setup:** Go to repo Settings → Pages → Source → select **"GitHub Actions"**.
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+After the first successful workflow run the app is live at:
+```
+https://ahrhamza.github.io/PDFmanager/
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Local Development
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+npm run dev
 ```
+
+## Tech Stack
+
+- [React 19](https://react.dev) + [TypeScript](https://www.typescriptlang.org)
+- [Vite](https://vitejs.dev) — build tool
+- [PDF.js](https://mozilla.github.io/pdf.js/) (`pdfjs-dist`) — PDF rendering
+- [pdf-lib](https://pdf-lib.js.org) — PDF manipulation
+- [Zustand](https://zustand-demo.pmnd.rs) — state management
+- [Tailwind CSS](https://tailwindcss.com) — styling
