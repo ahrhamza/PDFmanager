@@ -113,32 +113,29 @@ export default function MainCanvas() {
     return () => el.removeEventListener('wheel', handleWheel)
   }, [doc, settings.scrollMode, setCurrentPage])
 
-  if (!doc) {
-    return <EmptyState />
-  }
-
   return (
     <main
       ref={containerRef}
-      className="flex-1 overflow-auto flex flex-col items-center py-6 px-4 gap-4"
+      className={`flex-1 overflow-auto flex flex-col items-center gap-4 ${doc ? 'py-6 px-4' : 'justify-center'}`}
       style={{ backgroundColor: 'var(--app-bg)' }}
       tabIndex={-1}
     >
-      <PDFPageRenderer
-        pdfBytes={doc.pdfBytes}
-        pageIndex={doc.currentPage}
-        zoom={doc.zoom}
-      />
+      {doc ? (
+        <PDFPageRenderer
+          pdfBytes={doc.pdfBytes}
+          pageIndex={doc.currentPage}
+          zoom={doc.zoom}
+        />
+      ) : (
+        <EmptyState />
+      )}
     </main>
   )
 }
 
 function EmptyState() {
   return (
-    <main
-      className="flex-1 flex flex-col items-center justify-center gap-4"
-      style={{ backgroundColor: 'var(--app-bg)' }}
-    >
+    <>
       <div
         className="w-20 h-20 rounded-2xl flex items-center justify-center"
         style={{ backgroundColor: 'var(--app-surface)', border: '1px solid var(--app-border)' }}
@@ -179,6 +176,6 @@ function EmptyState() {
           </div>
         ))}
       </div>
-    </main>
+    </>
   )
 }
