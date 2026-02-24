@@ -17,7 +17,6 @@ export default function BottomBar() {
   }
 
   const zoom = doc.zoom
-  const zoomPct = Math.round(zoom * 100)
 
   function zoomIn() { setZoom(doc.id, nearestStep(zoom, 1)) }
   function zoomOut() { setZoom(doc.id, nearestStep(zoom, -1)) }
@@ -104,9 +103,6 @@ export default function BottomBar() {
       </div>
 
       <div className="flex-1" />
-
-      {/* Zoom indicator */}
-      <span className="text-xs app-muted">{zoomPct}%</span>
     </footer>
   )
 }

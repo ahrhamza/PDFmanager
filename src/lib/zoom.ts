@@ -7,3 +7,10 @@ export function nearestStep(zoom: number, direction: 1 | -1): number {
     return [...ZOOM_STEPS].reverse().find((s) => s < zoom - 0.001) ?? ZOOM_STEPS[0]
   }
 }
+
+/** Snap an arbitrary zoom value to the closest named step. */
+export function snapToNearest(zoom: number): number {
+  return ZOOM_STEPS.reduce((prev, curr) =>
+    Math.abs(curr - zoom) < Math.abs(prev - zoom) ? curr : prev
+  )
+}
