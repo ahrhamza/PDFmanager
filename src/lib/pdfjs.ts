@@ -8,27 +8,16 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
 
 export { pdfjsLib }
 
-/** Render one PDF page to a new <canvas> and return it */
-export async function renderPageToCanvas(
-  pdfBytes: Uint8Array,
-  pageIndex: number,
-  scale: number
-): Promise<HTMLCanvasElement> {
+/**
+ * Load a PDF page and return the page object, viewport, and owning PDFDocumentProxy.
+ * Caller is responsible for calling pdf.destroy() when done.
+ */
+export async function loadPdfPage(pdfBytes: Uint8Array, pageIndex: number, scale: number) {
   const loadingTask = pdfjsLib.getDocument({ data: pdfBytes.slice(0) })
   const pdf = await loadingTask.promise
   const page = await pdf.getPage(pageIndex + 1) // PDF.js is 1-indexed
-
   const viewport = page.getViewport({ scale })
-  const canvas = document.createElement('canvas')
-  canvas.width = Math.floor(viewport.width)
-  canvas.height = Math.floor(viewport.height)
-
-  const ctx = canvas.getContext('2d')!
-  // PDF.js v5 requires the canvas element in RenderParameters
-  await page.render({ canvasContext: ctx, canvas, viewport }).promise
-  pdf.destroy()
-
-  return canvas
+  return { pdf, page, viewport }
 }
 
 /** Render a page at low resolution for thumbnail use */
