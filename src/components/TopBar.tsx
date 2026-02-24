@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useRef, useEffect } from 'react'
 import { useAppStore } from '../store/useAppStore'
 import { loadPdfFromFile } from '../lib/pdfLoader'
 
@@ -6,6 +6,17 @@ export default function TopBar() {
   const { documents, activeDocIndex, settings, setTheme, addDocument, setActiveDocIndex } =
     useAppStore()
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.ctrlKey && e.key === 'o') {
+        e.preventDefault()
+        fileInputRef.current?.click()
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [])
 
   const activeDoc = documents[activeDocIndex]
   const isDark = settings.theme === 'dark' ||
