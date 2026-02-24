@@ -22,6 +22,8 @@ export async function loadPdfFromBytes(
     })
   )
 
+  const naturalWidth = pdfDoc.getPage(0).getSize().width
+
   return {
     id: generateId(),
     filename,
@@ -32,6 +34,7 @@ export async function loadPdfFromBytes(
     annotations: [],
     currentPage: 0,
     zoom: 1,
+    naturalWidth,
     scrollTop: 0,
     undoStack: [],
     redoStack: [],

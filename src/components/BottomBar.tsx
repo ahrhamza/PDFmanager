@@ -2,7 +2,7 @@ import { useAppStore } from '../store/useAppStore'
 import { ZOOM_STEPS, nearestStep } from '../lib/zoom'
 
 export default function BottomBar() {
-  const { documents, activeDocIndex, settings, setScrollMode, setZoom, setCurrentPage } = useAppStore()
+  const { documents, activeDocIndex, settings, canvasWidth, setScrollMode, setZoom, setCurrentPage } = useAppStore()
   const doc = documents[activeDocIndex]
 
   if (!doc) {
@@ -17,13 +17,12 @@ export default function BottomBar() {
   }
 
   const zoom = doc.zoom
-  const zoomPct = Math.round(zoom * 100)
 
   function zoomIn() { setZoom(doc.id, nearestStep(zoom, 1)) }
   function zoomOut() { setZoom(doc.id, nearestStep(zoom, -1)) }
-  function fitToWindow() {
-    // Fit to a typical canvas width (approximate — full fit handled in canvas)
-    setZoom(doc.id, 1)
+  function fitToWidth() {
+    const zoom = canvasWidth / (doc.naturalWidth || canvasWidth)
+    setZoom(doc.id, Math.min(5, zoom))
   }
 
   function prevPage() {
@@ -88,6 +87,9 @@ export default function BottomBar() {
           }}
           title="Zoom level"
         >
+          {!ZOOM_STEPS.some((s) => Math.abs(s - zoom) < 0.0001) && (
+            <option value={zoom}>{Math.round(zoom * 100)}%</option>
+          )}
           {ZOOM_STEPS.map((s) => (
             <option key={s} value={s}>
               {Math.round(s * 100)}%
@@ -98,15 +100,12 @@ export default function BottomBar() {
         <BarButton onClick={zoomIn} disabled={zoom >= ZOOM_STEPS[ZOOM_STEPS.length - 1]} title="Zoom in (+)">
           <PlusIcon />
         </BarButton>
-        <BarButton onClick={fitToWindow} title="Fit to window (Ctrl+0)">
-          <FitIcon />
+        <BarButton onClick={fitToWidth} title="Fit to window width">
+          <FitWidthIcon />
         </BarButton>
       </div>
 
       <div className="flex-1" />
-
-      {/* Zoom indicator */}
-      <span className="text-xs app-muted">{zoomPct}%</span>
     </footer>
   )
 }
@@ -154,8 +153,14 @@ function MinusIcon() {
 function PlusIcon() {
   return <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
 }
-function FitIcon() {
-  return <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" /></svg>
+function FitWidthIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 12h16" />
+      <path d="M4 12l3-3M4 12l3 3" />
+      <path d="M20 12l-3-3M20 12l-3 3" />
+    </svg>
+  )
 }
 function ScrollIcon() {
   return <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="10" x2="12" y2="14"/><polyline points="9 13 12 16 15 13"/></svg>

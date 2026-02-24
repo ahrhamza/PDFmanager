@@ -1,14 +1,27 @@
 import { useEffect, useRef, useCallback } from 'react'
 import { useAppStore } from '../store/useAppStore'
 import PDFPageRenderer from './PDFPageRenderer'
-import { nearestStep } from '../lib/zoom'
+import { nearestStep, snapToNearest } from '../lib/zoom'
 
 export default function MainCanvas() {
-  const { documents, activeDocIndex, settings, setZoom, setCurrentPage } = useAppStore()
+  const { documents, activeDocIndex, settings, setZoom, setCurrentPage, setCanvasWidth } = useAppStore()
   const doc = documents[activeDocIndex]
   const containerRef = useRef<HTMLDivElement>(null)
   // Prevents rapid page flipping after a page change
   const pageCooldown = useRef(false)
+  // Accumulates Ctrl+scroll delta between debounce flushes
+  const pendingZoom = useRef<number | null>(null)
+  const zoomTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Track inner canvas width for fit-to-width (subtract px-4 padding = 2×16px)
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+    const obs = new ResizeObserver(() => setCanvasWidth(el.clientWidth - 32))
+    obs.observe(el)
+    setCanvasWidth(el.clientWidth - 32) // initial measurement
+    return () => obs.disconnect()
+  }, [setCanvasWidth])
 
   // Keyboard shortcuts for zoom and page navigation
   const handleKeyDown = useCallback(
@@ -41,7 +54,9 @@ export default function MainCanvas() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [handleKeyDown])
 
-  // Ctrl+scroll: zoom in/out, override browser page-zoom
+  // Ctrl+scroll: zoom in/out, override browser page-zoom.
+  // Accumulates deltas into a ref and debounces the actual setZoom call so the
+  // PDF only re-renders once after the gesture ends, not on every wheel event.
   useEffect(() => {
     function handleCtrlWheel(e: WheelEvent) {
       if (!e.ctrlKey && !e.metaKey) return
@@ -49,10 +64,21 @@ export default function MainCanvas() {
       if (!doc) return
       // deltaY is ~100 per notch on a mouse wheel; trackpad sends smaller values
       const delta = e.deltaY * -0.001
-      setZoom(doc.id, doc.zoom + delta)
+      pendingZoom.current = Math.max(0.25, Math.min(5, (pendingZoom.current ?? doc.zoom) + delta))
+      if (zoomTimer.current) clearTimeout(zoomTimer.current)
+      zoomTimer.current = setTimeout(() => {
+        if (pendingZoom.current !== null) {
+          setZoom(doc.id, snapToNearest(pendingZoom.current))
+          pendingZoom.current = null
+        }
+      }, 250)
     }
     window.addEventListener('wheel', handleCtrlWheel, { passive: false })
-    return () => window.removeEventListener('wheel', handleCtrlWheel)
+    return () => {
+      window.removeEventListener('wheel', handleCtrlWheel)
+      if (zoomTimer.current) clearTimeout(zoomTimer.current)
+      pendingZoom.current = null
+    }
   }, [doc, setZoom])
 
   // Continuous scroll: advance/retreat page when reaching scroll boundary
