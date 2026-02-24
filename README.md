@@ -8,6 +8,7 @@ A fast, in-browser PDF viewer and editor built with React, TypeScript, Vite, and
 - Open PDF files via the **Open** button or drag-and-drop onto the viewer
 - Multi-tab support — open multiple PDFs simultaneously with tab switching
 - Page-by-page rendering using PDF.js with zoom controls (25% – 500%)
+- Text is selectable — click and drag to highlight, `Ctrl+C` to copy
 
 ### Keyboard Shortcuts
 | Shortcut | Action |
