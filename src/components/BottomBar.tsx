@@ -2,7 +2,7 @@ import { useAppStore } from '../store/useAppStore'
 import { ZOOM_STEPS, nearestStep } from '../lib/zoom'
 
 export default function BottomBar() {
-  const { documents, activeDocIndex, settings, canvasWidth, setScrollMode, setZoom, setCurrentPage } = useAppStore()
+  const { documents, activeDocIndex, settings, canvasWidth, canvasHeight, setScrollMode, setZoom, setCurrentPage } = useAppStore()
   const doc = documents[activeDocIndex]
 
   if (!doc) {
@@ -22,6 +22,10 @@ export default function BottomBar() {
   function zoomOut() { setZoom(doc.id, nearestStep(zoom, -1)) }
   function fitToWidth() {
     const zoom = canvasWidth / (doc.naturalWidth || canvasWidth)
+    setZoom(doc.id, Math.min(5, zoom))
+  }
+  function fitToHeight() {
+    const zoom = canvasHeight / (doc.naturalHeight || canvasHeight)
     setZoom(doc.id, Math.min(5, zoom))
   }
 
@@ -103,6 +107,9 @@ export default function BottomBar() {
         <BarButton onClick={fitToWidth} title="Fit to window width">
           <FitWidthIcon />
         </BarButton>
+        <BarButton onClick={fitToHeight} title="Fit to window height">
+          <FitHeightIcon />
+        </BarButton>
       </div>
 
       <div className="flex-1" />
@@ -159,6 +166,15 @@ function FitWidthIcon() {
       <path d="M4 12h16" />
       <path d="M4 12l3-3M4 12l3 3" />
       <path d="M20 12l-3-3M20 12l-3 3" />
+    </svg>
+  )
+}
+function FitHeightIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 4v16" />
+      <path d="M12 4l-3 3M12 4l3 3" />
+      <path d="M12 20l-3-3M12 20l3-3" />
     </svg>
   )
 }
