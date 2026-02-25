@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from 'react'
+import { useEffect, useLayoutEffect, useRef, useCallback } from 'react'
 import { useAppStore } from '../store/useAppStore'
 import PDFPageRenderer from './PDFPageRenderer'
 import { nearestStep, snapToNearest } from '../lib/zoom'
@@ -15,7 +15,10 @@ export default function MainCanvas() {
 
   // Track inner canvas dimensions for fit-to-width/height
   // px-4 = 2×16px horizontal padding; py-6 = 2×24px vertical padding
-  useEffect(() => {
+  // useLayoutEffect fires synchronously after DOM mutations so the first
+  // measurement is available before any user interaction (avoids the stale
+  // default value of 800 being used if the user clicks fit-to-width quickly).
+  useLayoutEffect(() => {
     const el = containerRef.current
     if (!el) return
     const update = () => {
