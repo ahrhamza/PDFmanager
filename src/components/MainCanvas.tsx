@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useCallback } from 'react'
 import { useAppStore } from '../store/useAppStore'
 import PDFPageRenderer from './PDFPageRenderer'
-import { nearestStep, snapToNearest } from '../lib/zoom'
+import { nearestStep } from '../lib/zoom'
 
 export default function MainCanvas() {
   const { documents, activeDocIndex, settings, setZoom, setCurrentPage, setCanvasWidth, setCanvasHeight, setPendingZoom } = useAppStore()
@@ -70,14 +70,16 @@ export default function MainCanvas() {
       if (!e.ctrlKey && !e.metaKey) return
       e.preventDefault()
       if (!doc) return
-      // deltaY is ~100 per notch on a mouse wheel; trackpad sends smaller values
-      const delta = e.deltaY * -0.001
-      pendingZoom.current = Math.max(0.25, Math.min(5, (pendingZoom.current ?? doc.zoom) + delta))
+      // Step through ZOOM_STEPS one notch at a time so the live display and the
+      // final committed value are always on the same named step — no snap jump.
+      const direction = e.deltaY < 0 ? 1 : -1
+      const current = pendingZoom.current ?? doc.zoom
+      pendingZoom.current = nearestStep(current, direction)
       setPendingZoom(pendingZoom.current)
       if (zoomTimer.current) clearTimeout(zoomTimer.current)
       zoomTimer.current = setTimeout(() => {
         if (pendingZoom.current !== null) {
-          setZoom(doc.id, snapToNearest(pendingZoom.current))
+          setZoom(doc.id, pendingZoom.current)
           pendingZoom.current = null
           setPendingZoom(null)
         }
