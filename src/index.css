@@ -63,6 +63,8 @@ body { transition: background-color 0.15s ease, color 0.15s ease; }
   overflow: hidden;
   line-height: 1;
   text-align: initial;
+  -webkit-text-size-adjust: none;
+  forced-color-adjust: none;
 }
 
 .textLayer span,
@@ -74,9 +76,9 @@ body { transition: background-color 0.15s ease, color 0.15s ease; }
   transform-origin: 0% 0%;
 }
 
-.textLayer ::selection {
+.textLayer span::selection,
+.textLayer br::selection {
   background: rgba(0, 100, 255, 0.25);
-  color: transparent;
 }
 
 /* ── Utility shorthands ───────────────────────────────────── */
