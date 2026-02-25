@@ -3,7 +3,7 @@ import { useAppStore } from '../store/useAppStore'
 import { loadPdfFromFile } from '../lib/pdfLoader'
 
 export default function TopBar() {
-  const { documents, activeDocIndex, settings, setTheme, addDocument, setActiveDocIndex } =
+  const { documents, activeDocIndex, settings, setTheme, addDocument, setActiveDocIndex, removeDocument } =
     useAppStore()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -64,26 +64,39 @@ export default function TopBar() {
           <span className="text-xs app-muted italic">No files open</span>
         ) : (
           documents.map((doc, i) => (
-            <button
+            <div
               key={doc.id}
-              onClick={() => setActiveDocIndex(i)}
-              title={doc.filename}
-              className="flex items-center gap-1.5 px-3 h-8 rounded-md text-sm whitespace-nowrap shrink-0 transition-colors border hover:opacity-90"
+              className="flex items-center gap-1 rounded-md shrink-0 border transition-colors"
               style={{
                 backgroundColor:
                   i === activeDocIndex ? 'var(--app-primary)' : 'var(--app-surface-2, #f1f3f5)',
-                color: i === activeDocIndex ? '#fff' : 'var(--app-text)',
                 borderColor: i === activeDocIndex ? 'var(--app-primary)' : 'var(--app-border)',
               }}
             >
-              {doc.isDirty && (
-                <span
-                  className="w-1.5 h-1.5 rounded-full shrink-0"
-                  style={{ backgroundColor: i === activeDocIndex ? '#fff' : 'var(--app-primary)' }}
-                />
-              )}
-              <span className="max-w-[140px] truncate">{doc.filename}</span>
-            </button>
+              <button
+                onClick={() => setActiveDocIndex(i)}
+                title={doc.filename}
+                className="flex items-center gap-1.5 pl-3 pr-1 h-8 text-sm whitespace-nowrap hover:opacity-90"
+                style={{ color: i === activeDocIndex ? '#fff' : 'var(--app-text)' }}
+              >
+                {doc.isDirty && (
+                  <span
+                    className="w-1.5 h-1.5 rounded-full shrink-0"
+                    style={{ backgroundColor: i === activeDocIndex ? '#fff' : 'var(--app-primary)' }}
+                  />
+                )}
+                <span className="max-w-[140px] truncate">{doc.filename}</span>
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); removeDocument(doc.id) }}
+                className="w-5 h-5 mr-1 rounded flex items-center justify-center opacity-60 hover:opacity-100 transition-opacity"
+                style={{ color: i === activeDocIndex ? '#fff' : 'var(--app-text)' }}
+                title="Close tab"
+                aria-label={`Close ${doc.filename}`}
+              >
+                <CloseIcon />
+              </button>
+            </div>
           ))
         )}
       </div>
@@ -170,6 +183,15 @@ function MoonIcon() {
   return (
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+    </svg>
+  )
+}
+
+function CloseIcon() {
+  return (
+    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+      <line x1="18" y1="6" x2="6" y2="18" />
+      <line x1="6" y1="6" x2="18" y2="18" />
     </svg>
   )
 }
