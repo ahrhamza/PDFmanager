@@ -35,6 +35,7 @@ interface AppState {
   removeDocument: (id: string) => void
   setActiveDocIndex: (index: number) => void
   updateDocument: (id: string, patch: Partial<OpenDocument>) => void
+  reorderDocuments: (fromIndex: number, toIndex: number) => void
   setClipboard: (pages: ClipboardPage[] | null) => void
   setActiveTool: (tool: Tool) => void
   setTheme: (theme: AppSettings['theme']) => void
@@ -107,6 +108,23 @@ export const useAppStore = create<AppState>()(
     setCanvasWidth: (w) => set({ canvasWidth: w }),
     setCanvasHeight: (h) => set({ canvasHeight: h }),
     setPendingZoom: (z) => set({ pendingZoom: z }),
+
+    reorderDocuments: (fromIndex, toIndex) =>
+      set((s) => {
+        if (fromIndex === toIndex) return s
+        const docs = [...s.documents]
+        const [moved] = docs.splice(fromIndex, 1)
+        docs.splice(toIndex, 0, moved)
+        let newActive = s.activeDocIndex
+        if (s.activeDocIndex === fromIndex) {
+          newActive = toIndex
+        } else if (fromIndex < s.activeDocIndex && toIndex >= s.activeDocIndex) {
+          newActive = s.activeDocIndex - 1
+        } else if (fromIndex > s.activeDocIndex && toIndex <= s.activeDocIndex) {
+          newActive = s.activeDocIndex + 1
+        }
+        return { documents: docs, activeDocIndex: newActive }
+      }),
 
     setClipboard: (pages) => set({ clipboard: pages }),
 

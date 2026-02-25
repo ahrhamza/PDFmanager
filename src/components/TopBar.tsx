@@ -3,9 +3,11 @@ import { useAppStore } from '../store/useAppStore'
 import { loadPdfFromFile } from '../lib/pdfLoader'
 
 export default function TopBar() {
-  const { documents, activeDocIndex, settings, setTheme, addDocument, setActiveDocIndex, removeDocument } =
+  const { documents, activeDocIndex, settings, setTheme, addDocument, setActiveDocIndex, removeDocument, reorderDocuments } =
     useAppStore()
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const dragIndexRef = useRef<number | null>(null)
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -66,11 +68,37 @@ export default function TopBar() {
           documents.map((doc, i) => (
             <div
               key={doc.id}
-              className="flex items-center gap-1 rounded-md shrink-0 border transition-colors"
+              draggable
+              onDragStart={(e) => {
+                dragIndexRef.current = i
+                e.dataTransfer.effectAllowed = 'move'
+              }}
+              onDragOver={(e) => {
+                e.preventDefault()
+                e.dataTransfer.dropEffect = 'move'
+                if (dragOverIndex !== i) setDragOverIndex(i)
+              }}
+              onDragLeave={() => setDragOverIndex(null)}
+              onDrop={(e) => {
+                e.preventDefault()
+                if (dragIndexRef.current !== null && dragIndexRef.current !== i) {
+                  reorderDocuments(dragIndexRef.current, i)
+                }
+                setDragOverIndex(null)
+                dragIndexRef.current = null
+              }}
+              onDragEnd={() => {
+                setDragOverIndex(null)
+                dragIndexRef.current = null
+              }}
+              className="flex items-center gap-1 rounded-md shrink-0 border transition-colors cursor-grab active:cursor-grabbing"
               style={{
                 backgroundColor:
                   i === activeDocIndex ? 'var(--app-primary)' : 'var(--app-surface-2, #f1f3f5)',
-                borderColor: i === activeDocIndex ? 'var(--app-primary)' : 'var(--app-border)',
+                borderColor: dragOverIndex === i
+                  ? 'var(--app-text)'
+                  : i === activeDocIndex ? 'var(--app-primary)' : 'var(--app-border)',
+                boxShadow: dragOverIndex === i ? 'inset 3px 0 0 var(--app-text)' : undefined,
               }}
             >
               <button
