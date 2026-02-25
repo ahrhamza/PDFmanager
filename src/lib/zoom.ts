@@ -1,4 +1,4 @@
-export const ZOOM_STEPS = [0.25, 0.33, 0.5, 0.67, 0.75, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2, 2.5, 3, 4, 5]
+export const ZOOM_STEPS = [0.25, 0.30, 0.35, 0.40, 0.45, 0.50, 0.60, 0.75, 0.90, 1.00, 1.10, 1.25, 1.50, 1.75, 2.00, 2.50, 3.00, 3.50, 4.00, 4.50, 5.00]
 
 export function nearestStep(zoom: number, direction: 1 | -1): number {
   if (direction === 1) {
