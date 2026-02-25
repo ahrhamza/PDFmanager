@@ -3,9 +3,11 @@ import { useAppStore } from '../store/useAppStore'
 import { loadPdfFromFile } from '../lib/pdfLoader'
 
 export default function TopBar() {
-  const { documents, activeDocIndex, settings, setTheme, addDocument, setActiveDocIndex } =
+  const { documents, activeDocIndex, settings, setTheme, addDocument, setActiveDocIndex, removeDocument, reorderDocuments } =
     useAppStore()
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const dragIndexRef = useRef<number | null>(null)
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -64,26 +66,76 @@ export default function TopBar() {
           <span className="text-xs app-muted italic">No files open</span>
         ) : (
           documents.map((doc, i) => (
-            <button
+            <div
               key={doc.id}
-              onClick={() => setActiveDocIndex(i)}
-              title={doc.filename}
-              className="flex items-center gap-1.5 px-3 h-8 rounded-md text-sm whitespace-nowrap shrink-0 transition-colors border hover:opacity-90"
+              draggable
+              onDragStart={(e) => {
+                dragIndexRef.current = i
+                e.dataTransfer.effectAllowed = 'move'
+              }}
+              onDragEnter={(e) => {
+                e.preventDefault()
+                setDragOverIndex(i)
+              }}
+              onDragOver={(e) => {
+                e.preventDefault()
+                e.dataTransfer.dropEffect = 'move'
+              }}
+              onDragLeave={(e) => {
+                // only clear when leaving the tab entirely, not when crossing into a child element
+                if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                  setDragOverIndex(null)
+                }
+              }}
+              onDrop={(e) => {
+                e.preventDefault()
+                if (dragIndexRef.current !== null && dragIndexRef.current !== i) {
+                  reorderDocuments(dragIndexRef.current, i)
+                }
+                setDragOverIndex(null)
+                dragIndexRef.current = null
+              }}
+              onDragEnd={() => {
+                setDragOverIndex(null)
+                dragIndexRef.current = null
+              }}
+              className="flex items-center rounded-md shrink-0 border transition-colors cursor-grab active:cursor-grabbing"
               style={{
                 backgroundColor:
                   i === activeDocIndex ? 'var(--app-primary)' : 'var(--app-surface-2, #f1f3f5)',
-                color: i === activeDocIndex ? '#fff' : 'var(--app-text)',
-                borderColor: i === activeDocIndex ? 'var(--app-primary)' : 'var(--app-border)',
+                borderColor: dragOverIndex === i
+                  ? 'var(--app-text)'
+                  : i === activeDocIndex ? 'var(--app-primary)' : 'var(--app-border)',
+                outline: dragOverIndex === i ? '2px solid var(--app-text)' : undefined,
+                outlineOffset: '2px',
               }}
             >
-              {doc.isDirty && (
-                <span
-                  className="w-1.5 h-1.5 rounded-full shrink-0"
-                  style={{ backgroundColor: i === activeDocIndex ? '#fff' : 'var(--app-primary)' }}
-                />
-              )}
-              <span className="max-w-[140px] truncate">{doc.filename}</span>
-            </button>
+              <button
+                draggable={false}
+                onClick={() => setActiveDocIndex(i)}
+                title={doc.filename}
+                className="flex items-center gap-1.5 pl-3 pr-2 h-8 text-sm whitespace-nowrap"
+                style={{ color: i === activeDocIndex ? '#fff' : 'var(--app-text)' }}
+              >
+                {doc.isDirty && (
+                  <span
+                    className="w-1.5 h-1.5 rounded-full shrink-0"
+                    style={{ backgroundColor: i === activeDocIndex ? '#fff' : 'var(--app-primary)' }}
+                  />
+                )}
+                <span className="max-w-[140px] truncate">{doc.filename}</span>
+              </button>
+              <button
+                draggable={false}
+                onClick={(e) => { e.stopPropagation(); removeDocument(doc.id) }}
+                className="w-6 h-6 mr-1 rounded flex items-center justify-center transition-colors hover:bg-black/20"
+                style={{ color: i === activeDocIndex ? '#fff' : 'var(--app-text)' }}
+                title="Close tab"
+                aria-label={`Close ${doc.filename}`}
+              >
+                <CloseIcon />
+              </button>
+            </div>
           ))
         )}
       </div>
@@ -170,6 +222,15 @@ function MoonIcon() {
   return (
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+    </svg>
+  )
+}
+
+function CloseIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+      <line x1="18" y1="6" x2="6" y2="18" />
+      <line x1="6" y1="6" x2="18" y2="18" />
     </svg>
   )
 }
