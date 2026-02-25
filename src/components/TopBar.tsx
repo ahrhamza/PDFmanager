@@ -73,12 +73,20 @@ export default function TopBar() {
                 dragIndexRef.current = i
                 e.dataTransfer.effectAllowed = 'move'
               }}
+              onDragEnter={(e) => {
+                e.preventDefault()
+                setDragOverIndex(i)
+              }}
               onDragOver={(e) => {
                 e.preventDefault()
                 e.dataTransfer.dropEffect = 'move'
-                if (dragOverIndex !== i) setDragOverIndex(i)
               }}
-              onDragLeave={() => setDragOverIndex(null)}
+              onDragLeave={(e) => {
+                // only clear when leaving the tab entirely, not when crossing into a child element
+                if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                  setDragOverIndex(null)
+                }
+              }}
               onDrop={(e) => {
                 e.preventDefault()
                 if (dragIndexRef.current !== null && dragIndexRef.current !== i) {
@@ -91,20 +99,22 @@ export default function TopBar() {
                 setDragOverIndex(null)
                 dragIndexRef.current = null
               }}
-              className="flex items-center gap-1 rounded-md shrink-0 border transition-colors cursor-grab active:cursor-grabbing"
+              className="flex items-center rounded-md shrink-0 border transition-colors cursor-grab active:cursor-grabbing"
               style={{
                 backgroundColor:
                   i === activeDocIndex ? 'var(--app-primary)' : 'var(--app-surface-2, #f1f3f5)',
                 borderColor: dragOverIndex === i
                   ? 'var(--app-text)'
                   : i === activeDocIndex ? 'var(--app-primary)' : 'var(--app-border)',
-                boxShadow: dragOverIndex === i ? 'inset 3px 0 0 var(--app-text)' : undefined,
+                outline: dragOverIndex === i ? '2px solid var(--app-text)' : undefined,
+                outlineOffset: '2px',
               }}
             >
               <button
+                draggable={false}
                 onClick={() => setActiveDocIndex(i)}
                 title={doc.filename}
-                className="flex items-center gap-1.5 pl-3 pr-1 h-8 text-sm whitespace-nowrap hover:opacity-90"
+                className="flex items-center gap-1.5 pl-3 pr-2 h-8 text-sm whitespace-nowrap"
                 style={{ color: i === activeDocIndex ? '#fff' : 'var(--app-text)' }}
               >
                 {doc.isDirty && (
@@ -116,8 +126,9 @@ export default function TopBar() {
                 <span className="max-w-[140px] truncate">{doc.filename}</span>
               </button>
               <button
+                draggable={false}
                 onClick={(e) => { e.stopPropagation(); removeDocument(doc.id) }}
-                className="w-5 h-5 mr-1 rounded flex items-center justify-center opacity-60 hover:opacity-100 transition-opacity"
+                className="w-6 h-6 mr-1 rounded flex items-center justify-center transition-colors hover:bg-black/20"
                 style={{ color: i === activeDocIndex ? '#fff' : 'var(--app-text)' }}
                 title="Close tab"
                 aria-label={`Close ${doc.filename}`}
@@ -217,7 +228,7 @@ function MoonIcon() {
 
 function CloseIcon() {
   return (
-    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
       <line x1="18" y1="6" x2="6" y2="18" />
       <line x1="6" y1="6" x2="18" y2="18" />
     </svg>
