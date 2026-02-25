@@ -4,7 +4,7 @@ import PDFPageRenderer from './PDFPageRenderer'
 import { nearestStep, snapToNearest } from '../lib/zoom'
 
 export default function MainCanvas() {
-  const { documents, activeDocIndex, settings, setZoom, setCurrentPage, setCanvasWidth, setCanvasHeight } = useAppStore()
+  const { documents, activeDocIndex, settings, setZoom, setCurrentPage, setCanvasWidth, setCanvasHeight, setPendingZoom } = useAppStore()
   const doc = documents[activeDocIndex]
   const containerRef = useRef<HTMLDivElement>(null)
   // Prevents rapid page flipping after a page change
@@ -73,11 +73,13 @@ export default function MainCanvas() {
       // deltaY is ~100 per notch on a mouse wheel; trackpad sends smaller values
       const delta = e.deltaY * -0.001
       pendingZoom.current = Math.max(0.25, Math.min(5, (pendingZoom.current ?? doc.zoom) + delta))
+      setPendingZoom(pendingZoom.current)
       if (zoomTimer.current) clearTimeout(zoomTimer.current)
       zoomTimer.current = setTimeout(() => {
         if (pendingZoom.current !== null) {
           setZoom(doc.id, snapToNearest(pendingZoom.current))
           pendingZoom.current = null
+          setPendingZoom(null)
         }
       }, 250)
     }

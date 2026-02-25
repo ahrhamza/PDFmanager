@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useState } from 'react'
 import { useAppStore } from '../store/useAppStore'
 import { loadPdfFromFile } from '../lib/pdfLoader'
 
@@ -17,6 +17,8 @@ export default function TopBar() {
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [])
+
+  const [themeHovered, setThemeHovered] = useState(false)
 
   const activeDoc = documents[activeDocIndex]
   const isDark = settings.theme === 'dark' ||
@@ -114,10 +116,12 @@ export default function TopBar() {
         {/* Theme toggle */}
         <button
           onClick={toggleTheme}
-          className="w-8 h-8 rounded-md flex items-center justify-center transition-colors border hover:bg-[var(--app-surface-2,#f1f3f5)]"
+          onMouseEnter={() => setThemeHovered(true)}
+          onMouseLeave={() => setThemeHovered(false)}
+          className="w-8 h-8 rounded-md flex items-center justify-center transition-colors border"
           style={{
             borderColor: 'var(--app-border)',
-            backgroundColor: 'var(--app-surface-2, #f1f3f5)',
+            backgroundColor: themeHovered ? 'var(--app-border)' : 'var(--app-surface-2, #f1f3f5)',
             color: 'var(--app-text)',
           }}
           title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}

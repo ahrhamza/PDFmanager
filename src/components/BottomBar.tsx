@@ -2,7 +2,7 @@ import { useAppStore } from '../store/useAppStore'
 import { ZOOM_STEPS, nearestStep } from '../lib/zoom'
 
 export default function BottomBar() {
-  const { documents, activeDocIndex, settings, canvasWidth, canvasHeight, setScrollMode, setZoom, setCurrentPage } = useAppStore()
+  const { documents, activeDocIndex, settings, canvasWidth, canvasHeight, pendingZoom, setScrollMode, setZoom, setCurrentPage } = useAppStore()
   const doc = documents[activeDocIndex]
 
   if (!doc) {
@@ -17,6 +17,9 @@ export default function BottomBar() {
   }
 
   const zoom = doc.zoom
+  // While a ctrl+scroll gesture is in flight the pending value is shown so the
+  // user can see the target zoom level before the PDF re-renders.
+  const displayZoom = pendingZoom ?? zoom
 
   function zoomIn() { setZoom(doc.id, nearestStep(zoom, 1)) }
   function zoomOut() { setZoom(doc.id, nearestStep(zoom, -1)) }
@@ -80,19 +83,19 @@ export default function BottomBar() {
         </BarButton>
 
         <select
-          value={zoom}
+          value={displayZoom}
           onChange={(e) => setZoom(doc.id, Number(e.target.value))}
           className="text-xs rounded px-1 h-6 border cursor-pointer focus:outline-none"
           style={{
             backgroundColor: 'var(--app-surface-2, #f1f3f5)',
-            borderColor: 'var(--app-border)',
+            borderColor: pendingZoom !== null ? 'var(--app-primary)' : 'var(--app-border)',
             color: 'var(--app-text)',
             minWidth: '60px',
           }}
           title="Zoom level"
         >
-          {!ZOOM_STEPS.some((s) => Math.abs(s - zoom) < 0.0001) && (
-            <option value={zoom}>{Math.round(zoom * 100)}%</option>
+          {!ZOOM_STEPS.some((s) => Math.abs(s - displayZoom) < 0.0001) && (
+            <option value={displayZoom}>{Math.round(displayZoom * 100)}%</option>
           )}
           {ZOOM_STEPS.map((s) => (
             <option key={s} value={s}>
