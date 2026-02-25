@@ -26,6 +26,9 @@ interface AppState {
   /** Inner height of the main canvas area (px), kept in sync by MainCanvas */
   canvasHeight: number
   setCanvasHeight: (h: number) => void
+  /** Zoom level being accumulated during a ctrl+scroll gesture (display only, PDF not yet re-rendered) */
+  pendingZoom: number | null
+  setPendingZoom: (z: number | null) => void
 
   // ── Actions ────────────────────────────────────────────────
   addDocument: (doc: OpenDocument) => void
@@ -67,6 +70,7 @@ export const useAppStore = create<AppState>()(
     recentlyClosed: [],
     canvasWidth: 800,
     canvasHeight: 600,
+    pendingZoom: null,
     settings: {
       theme: getInitialTheme(),
       defaultZoom: 1,
@@ -102,6 +106,7 @@ export const useAppStore = create<AppState>()(
 
     setCanvasWidth: (w) => set({ canvasWidth: w }),
     setCanvasHeight: (h) => set({ canvasHeight: h }),
+    setPendingZoom: (z) => set({ pendingZoom: z }),
 
     setClipboard: (pages) => set({ clipboard: pages }),
 
