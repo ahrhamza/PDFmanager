@@ -134,7 +134,7 @@ function BarButton({
       onClick={onClick}
       disabled={disabled}
       title={title}
-      className="w-6 h-6 flex items-center justify-center rounded transition-colors disabled:opacity-40"
+      className="w-6 h-6 flex items-center justify-center rounded transition-colors disabled:opacity-40 border border-transparent hover:border-[var(--app-border)] hover:bg-[var(--app-surface-2,#f1f3f5)]"
       style={{
         color: 'var(--app-text-muted, #64748b)',
       }}

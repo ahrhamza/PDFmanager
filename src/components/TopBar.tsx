@@ -65,7 +65,8 @@ export default function TopBar() {
             <button
               key={doc.id}
               onClick={() => setActiveDocIndex(i)}
-              className="flex items-center gap-1.5 px-3 h-8 rounded-md text-sm whitespace-nowrap shrink-0 transition-colors border"
+              title={doc.filename}
+              className="flex items-center gap-1.5 px-3 h-8 rounded-md text-sm whitespace-nowrap shrink-0 transition-colors border hover:opacity-90"
               style={{
                 backgroundColor:
                   i === activeDocIndex ? 'var(--app-primary)' : 'var(--app-surface-2, #f1f3f5)',
@@ -90,7 +91,7 @@ export default function TopBar() {
         {/* Open file */}
         <button
           onClick={() => fileInputRef.current?.click()}
-          className="flex items-center gap-1.5 px-3 h-8 rounded-md text-sm font-medium transition-colors"
+          className="flex items-center gap-1.5 px-3 h-8 rounded-md text-sm font-medium transition-colors hover:opacity-90"
           style={{
             backgroundColor: 'var(--app-primary)',
             color: '#fff',
@@ -113,7 +114,7 @@ export default function TopBar() {
         {/* Theme toggle */}
         <button
           onClick={toggleTheme}
-          className="w-8 h-8 rounded-md flex items-center justify-center transition-colors border"
+          className="w-8 h-8 rounded-md flex items-center justify-center transition-colors border hover:bg-[var(--app-surface-2,#f1f3f5)]"
           style={{
             borderColor: 'var(--app-border)',
             backgroundColor: 'var(--app-surface-2, #f1f3f5)',
